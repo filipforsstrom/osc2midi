@@ -1,16 +1,14 @@
 extern crate rosc;
 
-use rosc::{OscMessage, OscPacket};
+use rosc::{OscPacket};
 use std::env;
 use std::io::{stdin, stdout, Write};
 use std::net::{SocketAddrV4, UdpSocket};
 use std::str::FromStr;
-use std::thread::sleep;
-use std::time::Duration;
 
 use midir::{MidiOutput, MidiOutputConnection, MidiOutputPort};
 
-use anyhow::{Context, Error, Result};
+use anyhow::{Error, Result};
 
 fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
@@ -62,8 +60,8 @@ fn main() -> Result<()> {
 
     Ok(loop {
         match sock.recv_from(&mut buf) {
-            Ok((size, addr)) => {
-                // println!("Received packet with size {} from: {}", size, addr);
+            Ok((size, _addr)) => {
+                // println!("Received packet with size {} from: {}", size, _addr);
                 let (_, packet) = rosc::decoder::decode_udp(&buf[..size])?;
                 handle_packet(packet, &mut connection_out)
             }
@@ -80,7 +78,6 @@ fn handle_packet(packet: OscPacket, midi: &mut MidiOutputConnection) {
         const NOTE_ON_MSG: u8 = 0x90;
         const NOTE_OFF_MSG: u8 = 0x80;
         const VELOCITY: u8 = 0x64;
-        // We're ignoring errors in here
         let _ = midi.send(&[NOTE_ON_MSG, note, velocity]);
     };
 
@@ -99,8 +96,8 @@ fn handle_packet(packet: OscPacket, midi: &mut MidiOutputConnection) {
                 }
             }
         }
-        OscPacket::Bundle(bundle) => {
-            // println!("OSC Bundle: {:?}", bundle);
+        OscPacket::Bundle(_bundle) => {
+            // println!("OSC Bundle: {:?}", _bundle);
         }
     }
 }
